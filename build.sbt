@@ -19,7 +19,7 @@ val mysqlVersion      = "8.0.33"
 // Common settings
 // ============================================================
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.14",
+  scalaVersion := "2.13.18",
   organization := "routelab",
   scalacOptions ++= Seq(
     "-deprecation",
@@ -32,7 +32,7 @@ lazy val commonSettings = Seq(
   ),
   // Включаем SemanticDB — требуется для семантических правил Scalafix
   semanticdbEnabled := true,
-  semanticdbVersion := scalafixSemanticdb.revision,
+  semanticdbVersion := "4.16.1",
   // Scalafix: путь к конфигу
   scalafixConfig := Some(file(".scalafix.conf"))
 )
@@ -74,10 +74,10 @@ lazy val kafkaDeps = Seq(
 )
 
 lazy val pekkoDeps = Seq(
-  "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
-  "org.apache.pekko" %% "pekko-stream"      % pekkoVersion,
-  "org.apache.pekko" %% "pekko-http"        % pekkoHttpVersion,
-  "de.heikoseeberger" %% "pekko-http-circe" % "2.0.0"
+  "org.apache.pekko"    %% "pekko-actor-typed" % pekkoVersion,
+  "org.apache.pekko"    %% "pekko-stream"      % pekkoVersion,
+  "org.apache.pekko"    %% "pekko-http"        % pekkoHttpVersion,
+  "com.github.pjfanning" %% "pekko-http-circe" % "3.9.1"
 )
 
 // ============================================================

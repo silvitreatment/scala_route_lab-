@@ -13,13 +13,18 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v4 # клонирует репу
+              uses: actions/checkout@v4
 
             - name: Setup Java 21 (Temurin)
-              uses: actions/setup-java@v4 # качает Temurin JDK 21 
+              uses: actions/setup-java@v4
               with:
                   distribution: temurin
                   java-version: "21"
+
+            - name: Install sbt
+              run: |
+                  curl -fL https://github.com/sbt/sbt/releases/download/v1.10.1/sbt-1.10.1.tgz \
+                    | tar xz -C /usr/local --strip-components=1
 
             - name: Cache sbt dependencies
               uses: actions/cache@v4

@@ -1,4 +1,5 @@
 import scalapb.compiler.Version.scalapbVersion
+import scalafix.sbt.ScalafixPlugin.autoImport._
 
 // ============================================================
 // Versions
@@ -26,8 +27,15 @@ lazy val commonSettings = Seq(
     "-feature",
     "-unchecked",
     "-Xlint",
-    "-Ywarn-unused:imports"
-  )
+    "-Ywarn-unused:imports",
+    // Нужно для Scalafix SemanticDB-правил (ExplicitResultTypes, OrganizeImports и др.)
+    "-Yrangepos"
+  ),
+  // Включаем SemanticDB — требуется для семантических правил Scalafix
+  semanticdbEnabled := true,
+  semanticdbVersion := scalafixSemanticdb.revision,
+  // Scalafix: путь к конфигу
+  scalafixConfig := Some(file(".scalafix.conf"))
 )
 
 // ============================================================

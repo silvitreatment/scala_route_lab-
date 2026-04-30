@@ -35,8 +35,8 @@ class HaversineSpec extends AnyWordSpec with Matchers {
       val lon1 = 37.6173
       val lat2 = 59.9343
       val lon2 = 30.3351
-      val ab   = Haversine.distanceM(lat1, lon1, lat2, lon2)
-      val ba   = Haversine.distanceM(lat2, lon2, lat1, lon1)
+      val ab = Haversine.distanceM(lat1, lon1, lat2, lon2)
+      val ba = Haversine.distanceM(lat2, lon2, lat1, lon1)
       ab shouldBe ba +- EpsilonM
     }
 

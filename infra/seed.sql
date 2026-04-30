@@ -1,4 +1,4 @@
 -- Демо-данные для локального тестирования.
 -- Содержит: 1 tenant, 1 api_key, ~30 остановок (регион moscow-demo),
 -- 5 маршрутов, ~50 рейсов, stop_times для каждого рейса.
--- Запускать вручную после init.sql: mysql routelab < seed.sql
+-- Запускать вручную после init.sql: psql -h 127.0.0.1 -U postgres -d routelab -f infra/seed.sql

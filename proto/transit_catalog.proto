@@ -6,8 +6,8 @@
 //   GetScheduleForStop   — получить расписание всех рейсов для остановки на день
 
 
-syntax = "proto3"
-package routelab.transit;
+syntax = "proto3";
+package routelab.catalog;
 
 
 service TransitCatalogService {

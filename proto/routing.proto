@@ -1,4 +1,7 @@
-// gRPC контракт для Routing Service.
+syntax = "proto3";
+package routelab.routing;
+
+// Контракт Routing Service.
 // Метод BuildRoute — построить маршрут walk+bus+walk между двумя точками.
 // Алгоритм:
 //   1. GetStopsInRadius для origin и destination
@@ -6,3 +9,42 @@
 //   3. PredictArrival для каждого кандидата
 //   4. Собрать сегменты: WALK → BUS → WALK
 //   5. Отсортировать по total_eta_sec, вернуть top-3
+
+service RoutingService {
+  rpc BuildRoute (BuildRouteRequest) returns (BuildRouteResponse);
+}
+
+message LatLon {
+  double lat = 1;
+  double lon = 2;
+}
+
+// type: "WALK" или "BUS"
+// route_name и wait_sec заполняются только для BUS сегмента
+message RouteSegment {
+  string type       = 1;
+  int32  eta_sec    = 2;
+  string route_name = 3;
+  int32  wait_sec   = 4;
+}
+
+message RouteCandidate {
+  string                route_id           = 1;
+  int32                 total_eta_sec      = 2;
+  int32                 walking_distance_m = 3;
+  repeated RouteSegment segments           = 4;
+}
+
+message BuildRouteRequest {
+  LatLon origin         = 1;
+  LatLon destination    = 2;
+  string departure_time = 3; // HH:mm:ss
+  string service_day    = 4; // YYYY-MM-DD
+  int32  max_walking_m  = 5;
+  string region_id      = 6;
+}
+
+message BuildRouteResponse {
+  string                 request_id = 1;
+  repeated RouteCandidate routes    = 2;
+}

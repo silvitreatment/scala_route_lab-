@@ -9,12 +9,12 @@
 
 
 syntax = "proto3";
-package = routelab.live_position;
+package routelab.liveposition;
 
 
 service LivePositionService {
     rpc IngestVehiclePosition (IngestVehiclePositionRequest) returns (IngestVehiclePositionResponse);
-    rpc GetVehiclePosition (GetVehiclePositionRequest) returns (VehiclePostion);
+    rpc GetVehiclePosition (GetVehiclePositionRequest) returns (VehiclePosition);
     rpc GetTripDelay (GetTripDelayRequest) returns (TripDelayState);
     rpc GetActiveVehicles (GetActiveVehiclesRequest) returns (GetActiveVehiclesResponse);
 }

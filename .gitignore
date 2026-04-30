@@ -1,0 +1,19 @@
+# SBT build artifacts
+target/
+project/target/
+project/project/
+
+# Generated ScalaPB sources (regenerируются через sbt proto/compile)
+proto-gen/target/
+
+# IDE
+.idea/
+.bsp/
+.metals/
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+*.log

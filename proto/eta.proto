@@ -5,3 +5,24 @@
 //                     Иначе — predicted = scheduled.
 //   GetStopArrivals — получить список ближайших прибытий на остановку на текущий день.
 //                     Вызывает GetScheduleForStop у Catalog и GetTripDelay у LivePosition.
+
+syntax = "proto3";
+package routelab.eta;
+
+service EtaService {
+    rpc PredictArrival (PredictArrivalRequest) returns (PredictArrivalResponse);
+    rpc GetStopArrivals (GetStopArrivalsRequest) returns (GetStopArrivalsResponse);
+}
+
+message ArrivalPrediction {
+    string route_short_name = 1;
+    string trip_id = 2;
+    string scheduled_at = 3;
+    string predicted_at = 4;
+    int32 delay_sec = 5;
+}
+
+message PredictArrivalRequest  { string trip_id = 1; string stop_id = 2; string service_day = 3; }
+message PredictArrivalResponse { ArrivalPrediction prediction = 1; }
+message GetStopArrivalsRequest  { string stop_id = 1; string service_day = 2; }
+message GetStopArrivalsResponse { repeated ArrivalPrediction arrivals = 1; }

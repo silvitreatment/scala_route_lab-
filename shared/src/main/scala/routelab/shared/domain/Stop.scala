@@ -14,11 +14,11 @@ package routelab.shared.domain
 //   stop == moved  // false (разные lat)
 
 final case class Stop(
-  id:       String,  // уникальный идентификатор остановки, например "stop-42"
-  regionId: String,  // регион, к которому принадлежит остановка, например "moscow-demo"
-  name:     String,  // человекочитаемое название, например "Арбатская"
-  lat:      Double,  // широта (latitude), например 55.751244
-  lon:      Double   // долгота (longitude), например 37.618423
+    id: String,       // уникальный идентификатор остановки, например "stop-42"
+    regionId: String, // регион, к которому принадлежит остановка, например "moscow-demo"
+    name: String,     // человекочитаемое название, например "Арбатская"
+    lat: Double,      // широта (latitude), например 55.751244
+    lon: Double,      // долгота (longitude), например 37.618423
 )
 
 // companion object — объект с тем же именем что и класс.

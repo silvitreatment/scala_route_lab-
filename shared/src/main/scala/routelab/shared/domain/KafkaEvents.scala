@@ -1,5 +1,8 @@
 package routelab.shared.domain
 
+import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
+
 // Case классы для Kafka событий, сериализуемые через Circe JSON.
 // Топик: vehicle-position-events
 // Ключ сообщения в Kafka: vehicleId (для партиционирования по vehicle).
@@ -15,3 +18,11 @@ final case class VehiclePositionEvent(
     speed: Double,     // Скорость (м/с)
     eventTime: Long,   // Unix timestamp в миллисекундах (System.currentTimeMillis)
 )
+
+object VehiclePositionEvent {
+  // deriveEncoder / deriveDecoder — макросы Circe, которые автоматически генерируют
+  // JSON-сериализатор и десериализатор для case class во время компиляции.
+  // Требует: "io.circe" %% "circe-generic" в зависимостях (уже есть в build.sbt).
+  implicit val encoder: Encoder[VehiclePositionEvent] = deriveEncoder
+  implicit val decoder: Decoder[VehiclePositionEvent] = deriveDecoder
+}

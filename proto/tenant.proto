@@ -2,3 +2,45 @@
 // Метод AuthenticateApiKey: принимает хэш API ключа,
 // возвращает tenantId, признак валидности и лимит rpm.
 // Используется API Gateway для аутентификации входящих запросов.
+// Tenant — это клиент/арендатор внутри SaaS-системы.
+
+// Если у тебя один сервис для многих компаний, то каждая компания — это tenant.
+// Есть SaaS RouteLab Lite.
+// Им пользуются:
+
+// Company A
+// Company B
+// Company C
+// Каждая из них — отдельный tenant.
+
+// У tenant обычно есть:
+
+// свой tenant_id
+// свои API keys
+// свои лимиты
+// свои данные или доступ к данным
+// свои настройки
+// Зачем это нужно
+// Чтобы система была multi-tenant:
+
+// один backend,
+// много клиентов,
+// клиенты логически изолированы.
+
+syntex = "proto3";
+package = routelab.tenant;
+
+service TenantService {
+    rpc AuthenticateApiKey (AuthenticateApiKeyRequest) returns (AuthenticateApiKeyResponse);
+
+}
+
+message AuthenticateApiKeyRequest {
+    string api_key = 1;
+}
+
+message AuthenticateApiKeyResponse {
+    bool valid = 1;
+    string tenant_id = 2;
+    int32 rpm = 3;
+}

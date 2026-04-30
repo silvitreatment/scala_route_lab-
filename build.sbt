@@ -1,5 +1,4 @@
 import scalapb.compiler.Version.scalapbVersion
-import scalafix.sbt.ScalafixPlugin.autoImport._
 
 // ============================================================
 // Versions

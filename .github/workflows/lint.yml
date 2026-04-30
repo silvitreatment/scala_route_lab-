@@ -1,0 +1,39 @@
+name: Lint
+
+on:
+    push:
+        branches: [ "**" ]
+    pull_request:
+        branches: [ "**" ]
+
+jobs:
+    lint:
+        name: Scalafmt + Scalafix
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4 # клонирует репу
+
+            - name: Setup Java 21 (Temurin)
+              uses: actions/setup-java@v4 # качает Temurin JDK 21 
+              with:
+                  distribution: temurin
+                  java-version: "21"
+
+            - name: Cache sbt dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.sbt
+                      ~/.ivy2/cache
+                      ~/.cache/coursier
+                  key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt', '**/plugins.sbt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-sbt-
+
+            - name: Check formatting (Scalafmt)
+              run: sbt scalafmtCheck
+
+            - name: Check linting (Scalafix)
+              run: sbt "scalafix --check"

@@ -1,5 +1,131 @@
-# Docker Compose для локального запуска всей платформы.
-# Сервисы: mysql, redis, kafka (KRaft без Zookeeper),
-# tenant-service, transit-catalog-service, live-position-service,
-# eta-service, routing-service, api-gateway.
-# Порты: api-gateway:8080, gRPC сервисы: 9091-9095.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: routelab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d routelab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      CLUSTER_ID: "routelab-cluster-1"
+    ports:
+      - "9092:9092"
+
+  tenant-service:
+    build: ./tenant-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/routelab
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      GRPC_PORT: 9091
+    ports:
+      - "9091:9091"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  transit-catalog-service:
+    build: ./transit-catalog-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/routelab
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      GRPC_PORT: 9092
+    ports:
+      - "9092:9092"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  live-position-service:
+    build: ./live-position-service
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP: kafka:9092
+      GRPC_PORT: 9093
+    ports:
+      - "9093:9093"
+    depends_on:
+      - redis
+      - kafka
+
+  eta-service:
+    build: ./eta-service
+    environment:
+      CATALOG_GRPC_HOST: transit-catalog-service
+      CATALOG_GRPC_PORT: 9092
+      LIVE_GRPC_HOST: live-position-service
+      LIVE_GRPC_PORT: 9093
+      GRPC_PORT: 9094
+    ports:
+      - "9094:9094"
+    depends_on:
+      - transit-catalog-service
+      - live-position-service
+
+  routing-service:
+    build: ./routing-service
+    environment:
+      CATALOG_GRPC_HOST: transit-catalog-service
+      CATALOG_GRPC_PORT: 9092
+      ETA_GRPC_HOST: eta-service
+      ETA_GRPC_PORT: 9094
+      GRPC_PORT: 9095
+    ports:
+      - "9095:9095"
+    depends_on:
+      - transit-catalog-service
+      - eta-service
+
+  api-gateway:
+    build: ./api-gateway
+    environment:
+      HTTP_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TENANT_GRPC_HOST: tenant-service
+      TENANT_GRPC_PORT: 9091
+      ROUTING_GRPC_HOST: routing-service
+      ROUTING_GRPC_PORT: 9095
+      ETA_GRPC_HOST: eta-service
+      ETA_GRPC_PORT: 9094
+      LIVE_GRPC_HOST: live-position-service
+      LIVE_GRPC_PORT: 9093
+    ports:
+      - "8080:8080"
+    depends_on:
+      - tenant-service
+      - routing-service
+      - eta-service
+      - live-position-service
+
+volumes:
+  postgres-data:

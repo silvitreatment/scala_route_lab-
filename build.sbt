@@ -14,7 +14,7 @@ val redis4catsVersion = "1.7.1"
 val fs2KafkaVersion   = "3.5.1"
 val circeVersion      = "0.14.9"
 val log4catsVersion   = "2.7.0"
-val mysqlVersion      = "8.0.33"
+val postgresVersion   = "42.7.4"
 
 // ============================================================
 // Common settings
@@ -61,7 +61,7 @@ lazy val grpcDeps = Seq(
 lazy val dbDeps = Seq(
   "org.tpolecat" %% "doobie-core"   % doobieVersion,
   "org.tpolecat" %% "doobie-hikari" % doobieVersion,
-  "mysql"         % "mysql-connector-java" % mysqlVersion
+  "org.postgresql" % "postgresql"            % postgresVersion
 )
 
 lazy val redisDeps = Seq(

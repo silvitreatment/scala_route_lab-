@@ -1,7 +1,8 @@
 package routelab.shared.domain
 
+import io.circe.Decoder
+import io.circe.Encoder
 import io.circe.generic.semiauto._
-import io.circe.{ Decoder, Encoder }
 
 // Case классы для Kafka событий, сериализуемые через Circe JSON.
 // Топик: vehicle-position-events

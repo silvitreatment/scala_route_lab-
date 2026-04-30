@@ -1,0 +1,8 @@
+// gRPC контракт для Routing Service.
+// Метод BuildRoute — построить маршрут walk+bus+walk между двумя точками.
+// Алгоритм:
+//   1. GetStopsInRadius для origin и destination
+//   2. GetTripsBetweenStops для каждой пары остановок
+//   3. PredictArrival для каждого кандидата
+//   4. Собрать сегменты: WALK → BUS → WALK
+//   5. Отсортировать по total_eta_sec, вернуть top-3

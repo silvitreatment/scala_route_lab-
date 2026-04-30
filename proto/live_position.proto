@@ -1,0 +1,8 @@
+// gRPC контракт для Live Position Service.
+// Методы:
+//   IngestVehiclePosition — принять новую позицию транспортного средства,
+//                           дедуплицировать по vehicleId+eventTime,
+//                           сохранить в Redis, опубликовать в Kafka
+//   GetVehiclePosition    — получить последнюю известную позицию vehicle из Redis
+//   GetTripDelay          — получить текущую задержку рейса в секундах из Redis
+//   GetActiveVehicles     — получить список активных vehicle в регионе из Redis Set

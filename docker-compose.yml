@@ -1,0 +1,5 @@
+# Docker Compose для локального запуска всей платформы.
+# Сервисы: mysql, redis, kafka (KRaft без Zookeeper),
+# tenant-service, transit-catalog-service, live-position-service,
+# eta-service, routing-service, api-gateway.
+# Порты: api-gateway:8080, gRPC сервисы: 9091-9095.

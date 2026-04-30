@@ -1,0 +1,7 @@
+// gRPC контракт для ETA Service.
+// Методы:
+//   PredictArrival  — предсказать время прибытия конкретного рейса на остановку.
+//                     Если есть live delay в Redis — predicted = scheduled + delay_sec.
+//                     Иначе — predicted = scheduled.
+//   GetStopArrivals — получить список ближайших прибытий на остановку на текущий день.
+//                     Вызывает GetScheduleForStop у Catalog и GetTripDelay у LivePosition.

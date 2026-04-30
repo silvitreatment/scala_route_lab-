@@ -1,0 +1,4 @@
+-- SQL DDL для инициализации базы данных routelab при старте MySQL контейнера.
+-- Создаёт таблицы: tenants, api_keys, stops, routes, trips, stop_times.
+-- Все таблицы с индексами согласно архитектурному плану.
+-- Запускается автоматически через docker-entrypoint-initdb.d.

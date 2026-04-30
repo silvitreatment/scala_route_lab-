@@ -1,0 +1,6 @@
+// gRPC контракт для Transit Catalog Service.
+// Методы:
+//   GetStopsInRadius     — найти остановки в радиусе от точки (Haversine в SQL)
+//   GetStopById          — получить остановку по ID
+//   GetTripsBetweenStops — найти рейсы между двумя остановками после заданного времени
+//   GetScheduleForStop   — получить расписание всех рейсов для остановки на день

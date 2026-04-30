@@ -40,11 +40,11 @@
 
 ### RLAB-004 — Docker Compose инфраструктура
 **Что сделать:**
-- Написать `docker-compose.yml` с сервисами: `mysql`, `redis`, `kafka` (KRaft, без Zookeeper)
+- Написать `docker-compose.yml` с сервисами: `postgres`, `redis`, `kafka` (KRaft, без Zookeeper)
 - Написать `infra/init.sql`: CREATE TABLE для `tenants`, `api_keys`, `stops`, `routes`, `trips`, `stop_times` с индексами
-- Проверить: `docker-compose up mysql redis kafka` поднимается, MySQL принимает соединения, Kafka топик создаётся
+- Проверить: `docker-compose up postgres redis kafka` поднимается, PostgreSQL принимает соединения, Kafka топик создаётся
 
-**Acceptance criteria:** `docker-compose up -d` без ошибок, `mysql -h 127.0.0.1 -u root -proot routelab -e "SHOW TABLES;"` показывает 6 таблиц
+**Acceptance criteria:** `docker-compose up -d` без ошибок, `psql -h 127.0.0.1 -U postgres -d routelab -c "\dt"` показывает 6 таблиц
 
 ---
 
@@ -58,15 +58,15 @@
   - 50 рейсов (trips) на дату `2026-05-01`
   - stop_times для каждого рейса (10–15 остановок на рейс)
 
-**Acceptance criteria:** после `mysql routelab < infra/seed.sql` запрос `SELECT COUNT(*) FROM stop_times` возвращает > 400
+**Acceptance criteria:** после `psql -h 127.0.0.1 -U postgres -d routelab -f infra/seed.sql` запрос `SELECT COUNT(*) FROM stop_times` возвращает > 400
 
 ---
 
 ## Эпик 2: Tenant Service (День 2)
 
-### RLAB-006 — MySqlTransactor ZLayer
+### RLAB-006 — PostgresTransactor ZLayer
 **Что сделать:**
-- Написать `MySqlTransactor.scala` (переиспользуется в tenant и catalog сервисах)
+- Написать `PostgresTransactor.scala` (переиспользуется в tenant и catalog сервисах)
 - `HikariTransactor.fromHikariConfig` обёрнутый в `ZLayer`
 - Конфиг читается из `AppConfig` (env vars: `DB_URL`, `DB_USER`, `DB_PASSWORD`)
 
@@ -80,7 +80,7 @@
 - `ApiKeyRepo.findByHash(keyHash: String): Task[Option[(String, Int)]]` — возвращает `(tenantId, rpm)`
   - SQL: `SELECT t.id, t.requests_per_minute FROM api_keys k JOIN tenants t ON t.id = k.tenant_id WHERE k.key_hash = ? AND k.active = 1`
 
-**Acceptance criteria:** юнит-тест с H2 или интеграционный тест с реальным MySQL возвращает данные из seed
+**Acceptance criteria:** юнит-тест с H2 или интеграционный тест с реальным PostgreSQL возвращает данные из seed
 
 ---
 
@@ -359,8 +359,8 @@
 ### RLAB-032 — Docker Compose: все сервисы
 **Что сделать:**
 - Добавить `Dockerfile` для каждого сервиса (sbt-native-packager или `sbt assembly`)
-- Прописать `depends_on`, env vars, healthcheck для MySQL
-- Проверить порядок старта: mysql → tenant + catalog → live + eta → routing → gateway
+- Прописать `depends_on`, env vars, healthcheck для PostgreSQL
+- Проверить порядок старта: postgres → tenant + catalog → live + eta → routing → gateway
 
 **Acceptance criteria:** `docker-compose up -d` поднимает все 8 контейнеров без ошибок
 
@@ -369,7 +369,7 @@
 ### RLAB-033 — End-to-end сценарий
 **Что сделать:**
 - Написать `scripts/e2e.sh`:
-  1. `mysql routelab < infra/seed.sql`
+  1. `psql -h 127.0.0.1 -U postgres -d routelab -f infra/seed.sql`
   2. POST `/v1/admin/live-positions:ingest` с 3 позициями
   3. GET `/v1/vehicles/live?region_id=moscow-demo` → проверить 3 vehicle
   4. GET `/v1/stops/{stopId}/arrivals` → проверить delay

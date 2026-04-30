@@ -11,7 +11,7 @@
 | Kafka consumers, DLQ, logging consumers | Только один producer в live-position-service |
 | `route_requests_log`, `eta_predictions_log`, `imports_audit` | Убираем таблицы |
 | `RegisterUsage`, `CheckQuota` gRPC методы | Только `AuthenticateApiKey` |
-| Redis GEO index для stops | Haversine прямо в MySQL-запросе |
+| Redis GEO index для stops | Haversine прямо в PostgreSQL-запросе |
 | `BuildAlternativeRoutes` | Только `BuildRoute` |
 | Тарифные планы, quota policies | Только rpm rate limit через Redis |
 | Graceful shutdown, metrics, tracing | Не делаем |
@@ -25,7 +25,7 @@
 | REST API | Pekko HTTP |
 | Эффекты | ZIO 2.x |
 | Inter-service | gRPC (ScalaPB) |
-| БД | MySQL 8 |
+| БД | PostgreSQL 16 |
 | Live state + rate limit | Redis |
 | Async events | Kafka (только producer, 1 topic) |
 | Сборка | SBT multi-project |
@@ -289,7 +289,7 @@ message BuildRouteResponse {
 
 ---
 
-## 3. MySQL DDL
+## 3. PostgreSQL DDL
 
 Только нужные таблицы. Без logging-таблиц.
 
@@ -506,7 +506,7 @@ object Main extends ZIOAppDefault {
     ZIO.scoped {
       program.provide(
         AppConfig.live,          // читает env vars
-        MySqlTransactor.live,    // HikariCP pool
+        PostgresTransactor.live,    // HikariCP pool
         StopRepo.live,
         TripRepo.live,
         StopTimeRepo.live,
@@ -524,7 +524,7 @@ object Main extends ZIOAppDefault {
 
 ```
 AppConfig.live
-    └── MySqlTransactor.live
+    └── PostgresTransactor.live
             └── StopRepo.live
             └── TripRepo.live
             └── StopTimeRepo.live
@@ -585,7 +585,7 @@ val live: ZLayer[...deps..., Throwable, Unit] =
 
 ## 8. Алгоритмы MVP
 
-### 8.1. Ближайшие остановки — Haversine в MySQL
+### 8.1. Ближайшие остановки — Haversine в PostgreSQL
 
 ```sql
 SELECT id, name, lat, lon,
@@ -686,13 +686,21 @@ val totalEta     = walkToStop + waitForBus + busEta + walkFromStop
 ```yaml
 version: "3.9"
 services:
-  mysql:
-    image: mysql:8
+  postgres:
+    image: postgres:16-alpine
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: routelab
-    ports: ["3306:3306"]
-    volumes: ["./infra/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+      POSTGRES_DB: routelab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infra/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d routelab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -714,22 +722,22 @@ services:
   tenant-service:
     build: ./tenant-service
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/routelab
-      DB_USER: root
-      DB_PASSWORD: root
+      DB_URL: jdbc:postgresql://postgres:5432/routelab
+      DB_USER: postgres
+      DB_PASSWORD: postgres
       GRPC_PORT: 9091
     ports: ["9091:9091"]
-    depends_on: [mysql]
+    depends_on: [postgres]
 
   transit-catalog-service:
     build: ./transit-catalog-service
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/routelab
-      DB_USER: root
-      DB_PASSWORD: root
+      DB_URL: jdbc:postgresql://postgres:5432/routelab
+      DB_USER: postgres
+      DB_PASSWORD: postgres
       GRPC_PORT: 9092
     ports: ["9092:9092"]
-    depends_on: [mysql]
+    depends_on: [postgres]
 
   live-position-service:
     build: ./live-position-service
@@ -787,10 +795,10 @@ services:
 
 ### День 1–2: Фундамент
 - [ ] SBT multi-project build + proto codegen (sbt-protoc)
-- [ ] Docker Compose с MySQL, Redis, Kafka
-- [ ] MySQL schema (`infra/init.sql`)
+- [ ] Docker Compose с PostgreSQL, Redis, Kafka
+- [ ] PostgreSQL schema (`infra/init.sql`)
 - [ ] `shared` модуль: domain types + Haversine
-- [ ] `tenant-service`: AuthenticateApiKey gRPC + MySQL repo
+- [ ] `tenant-service`: AuthenticateApiKey gRPC + PostgreSQL repo
 
 ### День 3: Catalog
 - [ ] `transit-catalog-service`: все 4 gRPC метода
@@ -856,7 +864,7 @@ lazy val grpcDeps = Seq(
 lazy val dbDeps = Seq(
   "org.tpolecat" %% "doobie-core"   % doobieVersion,
   "org.tpolecat" %% "doobie-hikari" % doobieVersion,
-  "mysql"         % "mysql-connector-java" % "8.0.33"
+  "org.postgresql" % "postgresql"            % "42.7.4"
 )
 
 lazy val redisDeps = Seq(
@@ -934,7 +942,7 @@ libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.17"
 ## 13. Что НЕ делаем в MVP (явный список)
 
 - ❌ Kafka consumers и DLQ
-- ❌ Logging таблицы в MySQL
+- ❌ Logging таблицы в PostgreSQL
 - ❌ Quota / RegisterUsage
 - ❌ Redis GEO (используем Haversine в SQL)
 - ❌ BuildAlternativeRoutes

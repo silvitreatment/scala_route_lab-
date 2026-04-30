@@ -4,3 +4,51 @@
 //   GetStopById          — получить остановку по ID
 //   GetTripsBetweenStops — найти рейсы между двумя остановками после заданного времени
 //   GetScheduleForStop   — получить расписание всех рейсов для остановки на день
+
+
+syntax = "proto3"
+package routelab.transit;
+
+
+service TransitCatalogService {
+    rpc GetStopsInRadius (GetStopsInRadiusRequest) returns (GetStopsInRadiusResponse);
+    rpc GetStopById (GetStopByIdRequest) returns (Stop);
+    rpc GetTripsBetweenStops (GetTripsBetweenStopsRequest) returns (GetTripsBetweenStopsResponse);
+    rpc GetScheduleForStop (GetScheduleForStopRequest) returns (GetScheduleForStopResponse);
+}
+
+message Stop {
+    string stop_id = 1;
+    string region_id = 2;
+    string name = 3;
+    double lat = 4; 
+    double lon = 5;
+}
+
+message TripCandidate {
+  string trip_id             = 1;
+  string route_id            = 2;
+  string route_short_name    = 3;
+  string scheduled_departure = 4; // HH:mm:ss
+  string scheduled_arrival   = 5;
+}
+
+message StopTimeEntry {
+    string trip_id = 1;
+    string route_short_name = 2;
+    string scheduled_arrival = 3; // HH:mm:ss
+}
+
+message GetStopsInRadiusRequest  { double lat = 1; double lon = 2; int32 radius_m = 3; string region_id = 4; }
+message GetStopsInRadiusResponse { repeated Stop stops = 1; }
+message GetStopByIdRequest       { string stop_id = 1; }
+message GetTripsBetweenStopsRequest {
+  string from_stop_id = 1;
+  string to_stop_id   = 2;
+  string after_time   = 3; // HH:mm:ss
+  string service_day  = 4; // YYYY-MM-DD
+  string region_id    = 5;
+}
+message GetTripsBetweenStopsResponse { repeated TripCandidate trips = 1; }
+message GetScheduleForStopRequest    { string stop_id = 1; string service_day = 2; }
+message GetScheduleForStopResponse   { repeated StopTimeEntry entries = 1; }

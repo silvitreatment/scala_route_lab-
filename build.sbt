@@ -3,6 +3,7 @@ import scalapb.compiler.Version.scalapbVersion
 // ============================================================
 // Versions
 // ============================================================
+val scalaTestVersion  = "3.2.19"
 val zioVersion        = "2.1.6"
 val pekkoVersion      = "1.0.3"
 val pekkoHttpVersion  = "1.0.1"
@@ -88,7 +89,9 @@ lazy val shared = project
   .settings(commonSettings)
   .settings(
     name := "shared",
-    libraryDependencies ++= zioDeps ++ circeDeps
+    libraryDependencies ++= zioDeps ++ circeDeps ++ Seq(
+      "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
+    ),
   )
 
 // ============================================================
